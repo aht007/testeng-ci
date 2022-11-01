@@ -2,8 +2,10 @@
 Class helps create GitHub Pull requests
 """
 # pylint: disable=missing-class-docstring,missing-function-docstring,attribute-defined-outside-init
+import calendar;
 import logging
 import re
+import time;
 
 import click
 from github import GithubObject
@@ -48,6 +50,11 @@ class PullRequestCreator:
 
     def _create_branch(self, commit_sha):
         self.github_helper.create_branch(self.repository, self.branch, commit_sha)
+    
+    def _get_current_timestamp(self):
+        gmt = time.gmtime()
+        ts = calendar.timegm(gmt)
+        return ts
 
     def _set_github_data(self, untracked_files_required=False):
         LOGGER.info("Authenticating with Github")
@@ -59,7 +66,7 @@ class PullRequestCreator:
         LOGGER.info("Connected to {}".format(self.repository))
         self._set_updated_files_list(untracked_files_required)
         self.base_sha = self.github_helper.get_current_commit(self.repo_root)
-        self.branch = "refs/heads/jenkins/{}-{}".format(self.branch_name, self.base_sha[:7])
+        self.branch = "refs/heads/jenkins/{}-{}".format(self.branch_name, self._get_current_timestamp())
 
     def _branch_exists(self):
         return self.github_helper.branch_exists(self.repository, self.branch)
